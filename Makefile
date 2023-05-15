@@ -6,7 +6,7 @@ CMAKE_ZEPHYR_PATH=../zephyrproject/zephyr
 CMAKE_ZEPHYR_COMMAND=west build
 CMAKE_ZEPHYR_FLAGS=-b $(TARGET)
 
-all: flash
+all: compile flash
 
 compile:
 	$(CMAKE_ZEPHYR_COMMAND) $(CMAKE_ZEPHYR_FLAGS)
