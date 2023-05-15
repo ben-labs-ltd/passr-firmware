@@ -6,7 +6,7 @@
 #define SLEEP_TIME_MS   1000
 
 /* The devicetree node identifier for the "led0" alias. */
-#define LED0_NODE DT_ALIAS(led1)
+#define LED0_NODE DT_ALIAS(led0)
 
 /*
  * A build error on this line means your board is unsupported.
@@ -18,8 +18,7 @@ void main(void)
 {
 	int ret;
 
-	if (!device_is_ready(led.port)) {
-		return;
+	while (!device_is_ready(led.port)) {
 	}
 
 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
@@ -27,11 +26,13 @@ void main(void)
 		return;
 	}
 
-	while (1) {
-		ret = gpio_pin_toggle_dt(&led);
-		if (ret < 0) {
-			return;
-		}
-		k_msleep(SLEEP_TIME_MS);
-	}
+	gpio_pin_set_dt(&led, GPIO_OUTPUT_HIGH);
+
+    while (1) {
+        ret = gpio_pin_toggle_dt(&led);
+        if (ret < 0) {
+            return;
+        }
+        k_msleep(SLEEP_TIME_MS);
+    }
 }
