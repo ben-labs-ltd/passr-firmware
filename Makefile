@@ -10,6 +10,7 @@ all: compile flash
 
 compile:
 	$(CMAKE_ZEPHYR_COMMAND) $(CMAKE_ZEPHYR_FLAGS)
+	cp build/zephyr/zephyr.uf2 ./zephyr.uf2
 
 # FIXME: This is entirely board specific, for example the pi pico will vibe differently
 flash:
