@@ -21,18 +21,25 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 void main(void)
 {
-    // set up the led
-    while (!device_is_ready(led.port)) { }
-    gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-    gpio_pin_set_dt(&led, GPIO_OUTPUT_LOW);
-
-    while (!device_is_ready(spi1_dev)) { }
-
-    gpio_pin_set_dt(&led, GPIO_OUTPUT_HIGH);
-
-    while (1) {
-        k_msleep(500);
-        gpio_pin_toggle_dt(&led);
+    while (!device_is_ready(spi1_dev)) {
+        
     }
+
+	if (!device_is_ready(led.port)) {
+		return;
+	}
+
+	int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+	if (ret < 0) {
+		return;
+	}
+
+	while (1) {
+		ret = gpio_pin_toggle_dt(&led);
+		if (ret < 0) {
+			return;
+		}
+		k_msleep(500);
+	}
 }
 

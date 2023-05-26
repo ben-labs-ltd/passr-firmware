@@ -1,3 +1,12 @@
 &spi1 {
+	compatible = "raspberrypi,pico-spi", "arm,pl022";
+    cs-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+#address-cells = <1>;
+#size-cells = <0>;
+    reg = <0x40040000 DT_SIZE_K(4)>;
+    resets = <&reset RPI_PICO_RESETS_RESET_SPI1>;
+    clocks = <&peripheral_clk>;
+    interrupts = <19 RPI_PICO_DEFAULT_IRQ_PRIORITY>;
+    interrupt-names = "spi1";
     status = "okay";
 };
