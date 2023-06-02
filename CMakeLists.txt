@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20.0)
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.overlay")
+  set(mcuboot_DTC_OVERLAY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.overlay")
+endif()
+
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(passr)

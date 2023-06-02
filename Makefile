@@ -1,12 +1,12 @@
 .ONESHELL:
 
-TARGET=rpi_pico
+TARGET=nrf52840dk_nrf52840
 
 CMAKE_ZEPHYR_PATH=../zephyrproject/zephyr
 CMAKE_ZEPHYR_COMMAND=west build
 CMAKE_ZEPHYR_FLAGS=-b $(TARGET)
 
-all: compile flash_pico
+all: compile flash
 
 setup:
 	west init
@@ -14,18 +14,15 @@ setup:
 
 compile:
 	$(CMAKE_ZEPHYR_COMMAND) $(CMAKE_ZEPHYR_FLAGS)
-	cp build/zephyr/zephyr.uf2 ./zephyr.uf2
-	echo "Copied zephyr.uf2 to project root"
 
-flash_pico:
-	# mount then copy the uf2
-	sudo mount -L RPI-RP2 /mnt
-	sudo cp zephyr.uf2 /mnt
-	echo "Copied zephyr.uf2 to pico"
+flash: compile
+	cp build/zephyr/zephyr.hex ./zephyr.hex
+	echo "Copied zephyr.hex to project root"
+	nrfjprog -f nrf52 --program zephyr.hex --sectorerase --verify --log --reset
+	minicom -D /dev/ttyACM0 -b 115200
 
-# FIXME: This is entirely board specific, for example the pi pico will vibe differently
-flash:
-	west flash
+listen:
+	minicom -D /dev/ttyACM0 -b 115200
 
 clean:
 	rm -rf build/
