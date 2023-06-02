@@ -18,7 +18,7 @@ compile:
 flash: compile
 	cp build/zephyr/zephyr.hex ./zephyr.hex
 	echo "Copied zephyr.hex to project root"
-	nrfjprog -f nrf52 --program zephyr.hex --sectorerase --verify --log --reset
+	nrfjprog -f nrf52 --program zephyr.hex --sectorerase --verify --reset
 	minicom -D /dev/ttyACM0 -b 115200
 
 listen:
