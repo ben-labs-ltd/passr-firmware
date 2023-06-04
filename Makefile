@@ -6,7 +6,8 @@ CMAKE_ZEPHYR_PATH=../zephyrproject/zephyr
 CMAKE_ZEPHYR_COMMAND=west build
 CMAKE_ZEPHYR_FLAGS=-b $(TARGET)
 
-all: compile flash
+all: compile flash listen
+cf: compile flash
 
 setup:
 	west init
@@ -19,9 +20,11 @@ flash: compile
 	cp build/zephyr/zephyr.hex ./zephyr.hex
 	echo "Copied zephyr.hex to project root"
 	nrfjprog -f nrf52 --program zephyr.hex --sectorerase --verify --reset
+
+listen: flash
 	minicom -D /dev/ttyACM0 -b 115200
 
-listen:
+com:
 	minicom -D /dev/ttyACM0 -b 115200
 
 clean:
