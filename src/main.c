@@ -58,16 +58,7 @@ static int spi_write_test_msg(void)
 		.count = 1
 	};
 
-	/* struct spi_buf rx_buf = {
-		.buf = rx_buffer,
-		.len = sizeof(rx_buffer),
-	};
-	const struct spi_buf_set rx = {
-		.buffers = &rx_buf,
-		.count = 1
-	} */;
-
-	// Update the TX buffer with a rolling counter
+    // Update the TX buffer with a rolling counter
 	tx_buffer[0] = counter++;
 	printk("SPI TX: 0x%.2x, 0x%.2x\n", tx_buffer[0], tx_buffer[1]);
 
