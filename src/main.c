@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -78,7 +72,7 @@ static int spi_write_test_msg(void)
 
 	// Reset signal
 	k_poll_signal_reset(&spi_done_sig);
-	
+
 	// Start transaction
 	int error = spi_transceive_async(spi_dev, &spi_cfg, &tx, &rx, &spi_done_sig);
 	if(error != 0){
@@ -145,7 +139,7 @@ static int spi_slave_write_test_msg(void)
 
 	// Reset signal
 	k_poll_signal_reset(&spi_slave_done_sig);
-	
+
 	// Start transaction
 	int error = spi_transceive_async(spi_slave_dev, &spi_slave_cfg, &s_tx, &s_rx, &spi_slave_done_sig);
 	if(error != 0){
@@ -189,7 +183,7 @@ void main(void)
 	spi_slave_init();
 
 	printk("SPI master/slave example started\n");
-	
+
 	spi_slave_write_test_msg();
 
 	while (1) {
@@ -203,7 +197,7 @@ void main(void)
 		if(spi_slave_check_for_message() == 0){
 			// Print the last received data
 			printk("SPI SLAVE RX: 0x%.2x, 0x%.2x\n", slave_rx_buffer[0], slave_rx_buffer[1]);
-			
+
 			// Prepare the next SPI slave transaction
 			spi_slave_write_test_msg();
 		}
