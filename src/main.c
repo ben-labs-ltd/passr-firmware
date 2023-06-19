@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -9,23 +10,20 @@
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
+#define SPI_MASTER DT_NODELABEL(spi_master)
 
-#define MY_SPI_MASTER DT_NODELABEL(my_spi_master)
-
-#define MY_SPI_SLAVE  DT_NODELABEL(my_spi_slave)
-
-// SPI master functionality
+// SPI 
 const struct device *spi_dev;
 static struct k_poll_signal spi_done_sig = K_POLL_SIGNAL_INITIALIZER(spi_done_sig);
 
 struct spi_cs_control spim_cs = {
-	.gpio = SPI_CS_GPIOS_DT_SPEC_GET(DT_NODELABEL(reg_my_spi_master)),
+	.gpio = SPI_CS_GPIOS_DT_SPEC_GET(DT_NODELABEL(reg_spi_master)),
 	.delay = 0,
 };
 
 static void spi_init(void)
 {
-	spi_dev = DEVICE_DT_GET(MY_SPI_MASTER);
+	spi_dev = DEVICE_DT_GET(SPI_MASTER);
 	if(!device_is_ready(spi_dev)) {
 		printk("SPI master device not ready!\n");
 	}
@@ -35,57 +33,49 @@ static void spi_init(void)
 }
 
 static const struct spi_config spi_cfg = {
-	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB |
-				 SPI_MODE_CPHA,
+	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB,
 	.frequency = 4000000,
 	.slave = 0,
 	.cs = &spim_cs,
 };
 
-static int spi_write_test_msg(void)
-{
-	static uint8_t counter = 0;
-	static uint8_t tx_buffer[2];
-	static uint8_t rx_buffer[2];
+static int spi_write_8(uint8_t command) {
+    const struct spi_buf tx_buf = {
+        .buf = &command,
+        .len = sizeof(command)
+    };
 
-	const struct spi_buf tx_buf = {
-		.buf = tx_buffer,
-		.len = sizeof(tx_buffer)
-	};
-	const struct spi_buf_set tx = {
-		.buffers = &tx_buf,
-		.count = 1
-	};
+    const struct spi_buf_set tx = {
+        .buffers = &tx_buf,
+        .count = 1
+    };
 
-	struct spi_buf rx_buf = {
-		.buf = rx_buffer,
-		.len = sizeof(rx_buffer),
-	};
-	const struct spi_buf_set rx = {
-		.buffers = &rx_buf,
-		.count = 1
-	};
-
-	// Update the TX buffer with a rolling counter
-	tx_buffer[0] = counter++;
-	printk("SPI TX: 0x%.2x, 0x%.2x\n", tx_buffer[0], tx_buffer[1]);
-
-	// Reset signal
-	k_poll_signal_reset(&spi_done_sig);
-	// Start transaction
-
-	int error = spi_transceive_async(spi_dev, &spi_cfg, &tx, &rx, &spi_done_sig);
-	if(error != 0){
-		printk("SPI transceive error: %i\n", error);
-		return error;
-	}
-
-	return 0;
+    k_poll_signal_reset(&spi_done_sig);
+    int error = spi_write(spi_dev, &spi_cfg, &tx);
+    if(error != 0){
+        printk("SPI write error: %i\n", error);
+        return error;
+    }
 }
 
-// SPI slave functionality
-const struct device *spi_slave_dev;
-static struct k_poll_signal spi_slave_done_sig = K_POLL_SIGNAL_INITIALIZER(spi_slave_done_sig);
+static int spi_write_buf(uint8_t* buf, int len) {
+    const struct spi_buf tx_buf = {
+        .buf = buf,
+        .len = len
+    };
+
+    const struct spi_buf_set tx = {
+        .buffers = &tx_buf,
+        .count = 1
+    };
+
+    k_poll_signal_reset(&spi_done_sig);
+    int error = spi_write(spi_dev, &spi_cfg, &tx);
+    if(error != 0){
+        printk("SPI write error: %i\n", error);
+        return error;
+    }
+}
 
 /*
  * A build error on this line means your board is unsupported.
@@ -108,16 +98,24 @@ void main(void)
 
 	spi_init();
 
+    k_msleep(SLEEP_TIME_MS);
 
-	printk("SPI master/slave example started\n");
+    spi_write_8(0x12);
 
+    k_msleep(SLEEP_TIME_MS);
+
+    spi_write_8(0x46);
+    spi_write_8(0xF7);
+
+    k_msleep(SLEEP_TIME_MS);
+
+    spi_write_8(0x47);
+    spi_write_8(0xF7);
+
+    k_msleep(SLEEP_TIME_MS);
 
 	while (1) {
-		spi_write_test_msg();
-		ret = gpio_pin_toggle_dt(&led);
-		if (ret < 0) {
-			return;
-		}
+	    gpio_pin_toggle_dt(&led);
 		k_msleep(SLEEP_TIME_MS);
     }
 }

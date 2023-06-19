@@ -17,14 +17,14 @@
 	};
 };
 
-my_spi_master: &spi3 {
+spi_master: &spi3 {
 	compatible = "nordic,nrf-spim";
 	status = "okay";
 	pinctrl-0 = <&spi_master_default>;
 	pinctrl-1 = <&spi_master_sleep>;
 	pinctrl-names = "default", "sleep";
 	cs-gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
-	reg_my_spi_master: spi-dev-a@0 {
+	reg_spi_master: spi-dev-a@0 {
 		reg = <0>;
 	};
 };
