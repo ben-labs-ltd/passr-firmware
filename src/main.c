@@ -5,14 +5,17 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
 
+#include "nrf_gpio.h"
+
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   100
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
 #define SPI_MASTER DT_NODELABEL(spi_master)
+#define RST_PAPER NRF_GPIO_PIN_MAP(0, 4)
 
-// SPI 
+// SPI
 const struct device *spi_dev;
 static struct k_poll_signal spi_done_sig = K_POLL_SIGNAL_INITIALIZER(spi_done_sig);
 
@@ -77,41 +80,28 @@ static int spi_write_buf(uint8_t* buf, int len) {
     }
 }
 
-/*
- * A build error on this line means your board is unsupported.
- * See the sample documentation for information on how to fix this.
- */
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 void main(void)
 {
-	int ret;
-
 	if (!device_is_ready(led.port)) {
 		return;
 	}
 
-	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+	int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+	ret += nrf_gpio_cfg_output(RST_PAPER);
 	if (ret < 0) {
 		return;
 	}
 
 	spi_init();
 
+    gpio_pin_set_dt(&rst, 0);
     k_msleep(SLEEP_TIME_MS);
+    gpio_pin_set_dt(&rst, 1);
 
+    k_msleep(SLEEP_TIME_MS);
     spi_write_8(0x12);
-
-    k_msleep(SLEEP_TIME_MS);
-
-    spi_write_8(0x46);
-    spi_write_8(0xF7);
-
-    k_msleep(SLEEP_TIME_MS);
-
-    spi_write_8(0x47);
-    spi_write_8(0xF7);
-
     k_msleep(SLEEP_TIME_MS);
 
 	while (1) {
